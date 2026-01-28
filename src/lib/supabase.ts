@@ -1,4 +1,5 @@
-import { createBrowserClient } from '@supabase/ssr'
+import { createBrowserClient, createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
 export function createClient() {
   return createBrowserClient(
@@ -7,10 +8,7 @@ export function createClient() {
   )
 }
 
-// Server-side client for API routes
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-
+// Server-side client for API routes and Server Components
 export async function createServerSupabaseClient() {
   const cookieStore = await cookies()
   
@@ -19,21 +17,17 @@ export async function createServerSupabaseClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
+        getAll() {
+          return cookieStore.getAll()
         },
-        set(name: string, value: string, options: CookieOptions) {
+        setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
           try {
-            cookieStore.set({ name, value, ...options })
-          } catch (error) {
-            // Handle cookie errors in middleware
-          }
-        },
-        remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options })
-          } catch (error) {
-            // Handle cookie errors in middleware
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // The `setAll` method is called from a Server Component.
+            // This can be ignored if you have middleware refreshing sessions.
           }
         },
       },

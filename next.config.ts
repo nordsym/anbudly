@@ -1,7 +1,11 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  // Enable experimental features if needed
+  output: 'export',
+  basePath: '/anbudly',
+  images: {
+    unoptimized: true,
+  },
 }
 
 export default nextConfig
